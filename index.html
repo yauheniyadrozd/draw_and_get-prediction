@@ -16,7 +16,6 @@
     --accent-2: #1f9d6c;
     --warn: #ffb454;
     --bad: #ff6b6b;
-    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     --radius: 18px;
     --shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
 
@@ -81,7 +80,7 @@
   html { background: var(--bg); }
   html, body { margin: 0; color: var(--text); }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     min-height: 100vh;
     -webkit-user-select: none; user-select: none;
     background: transparent;
@@ -103,7 +102,7 @@
     transition: background .25s ease, border-color .25s ease;
   }
   .logo {
-    font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: .3px;
+    font-size: 22px; font-weight: 700; letter-spacing: .3px;
     display: flex; align-items: center; gap: 12px;
   }
   .logo img {
@@ -182,7 +181,7 @@
   }
   .pred.top .bar i { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
   .pred.hit .bar i { background: linear-gradient(90deg, var(--warn), #f7b955); }
-  .pred .pct { text-align: right; color: var(--pct); font-family: var(--mono); font-size: 13px; }
+  .pred .pct { text-align: right; color: var(--pct); font-variant-numeric: tabular-nums; font-size: 13px; }
   .pred.top .pct, .pred.top .nm { color: var(--text); font-weight: 700; }
   .guess { font-size: 18px; min-height: 28px; margin-bottom: 4px; }
   .guess b { color: var(--accent); }
@@ -198,7 +197,7 @@
 <div class="aurora" aria-hidden="true"></div>
 <header>
   <div class="logo"><img id="logo" src="estymator-logo.png" alt="Estymator">estymator</div>
-  <button id="theme-toggle" aria-label="Zmień motyw" title="Zmień motyw">🌙</button>
+  <button id="theme-toggle" aria-label="Zmień motyw" title="Zmień motyw"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
 </header>
 
 <main>
@@ -206,9 +205,9 @@
     <div class="card">
       <canvas id="board" width="560" height="560"></canvas>
       <div class="row">
-        <button id="undo">↶ Cofnij</button>
-        <button id="clear">✕ Wyczyść</button>
-        <button id="fortune">🔮 Przepowiednia na jutro</button>
+        <button id="undo">Cofnij</button>
+        <button id="clear">Wyczyść</button>
+        <button id="fortune">Przepowiednia na jutro</button>
       </div>
     </div>
   </section>
@@ -234,14 +233,13 @@
 <script src="model.js" onerror="void 0"></script>
 <script>
 const LABELS = {
-  "cat": ["Kot", "🐱"], "dog": ["Pies", "🐶"], "house": ["Dom", "🏠"], "tree": ["Drzewo", "🌳"],
-  "car": ["Samochód", "🚗"], "bicycle": ["Rower", "🚲"], "sun": ["Słońce", "☀️"], "moon": ["Księżyc", "🌙"],
-  "star": ["Gwiazda", "⭐"], "flower": ["Kwiat", "🌸"], "fish": ["Ryba", "🐟"], "apple": ["Jabłko", "🍎"],
-  "banana": ["Banan", "🍌"], "clock": ["Zegar", "🕒"], "umbrella": ["Parasol", "☂️"], "airplane": ["Samolot", "✈️"],
-  "guitar": ["Gitara", "🎸"], "smiley face": ["Buźka", "🙂"], "cup": ["Kubek", "☕"], "key": ["Klucz", "🔑"]
+  "cat": "Kot", "dog": "Pies", "house": "Dom", "tree": "Drzewo",
+  "car": "Samochód", "bicycle": "Rower", "sun": "Słońce", "moon": "Księżyc",
+  "star": "Gwiazda", "flower": "Kwiat", "fish": "Ryba", "apple": "Jabłko",
+  "banana": "Banan", "clock": "Zegar", "umbrella": "Parasol", "airplane": "Samolot",
+  "guitar": "Gitara", "smiley face": "Buźka", "cup": "Kubek", "key": "Klucz"
 };
-const label = c => (LABELS[c] ? LABELS[c][1] + " " + LABELS[c][0] : c);
-const plain = c => (LABELS[c] ? LABELS[c][0] : c);
+const label = c => (LABELS[c] ? LABELS[c] : c);
 
 const JOKES = {
   "cat": ["Sierść wykryta. Mój loss rośnie, bo kot właśnie zrzucił go ze stołu.", "Kot albo wąsaty ziemniak. Stawiam na kota."],
@@ -489,7 +487,7 @@ function tellFortune() {
   const conf = Math.round(lastTop.p * 100);
   const lucky = 1 + Math.floor(Math.random() * 99);
   const note = conf >= 70 ? "Wysoka pewność, ale to tylko estymacja." : conf >= 40 ? "Średnia pewność, traktuj jak hipotezę." : "Niska pewność. Hipoteza zerowa: nic się nie wydarzy.";
-  showBanner("fortune", "🔮 <b>Przepowiednia Estymatora</b><br>Na podstawie rysunku (" + label(lastTop.cls) + "): " + f +
+  showBanner("fortune", "<b>Przepowiednia Estymatora</b><br>Na podstawie rysunku (" + label(lastTop.cls) + "): " + f +
     "<small>Pewność przepowiedni: " + conf + "% · " + note + " Szczęśliwy numer: " + lucky + " ± 3</small>");
 }
 
@@ -533,6 +531,10 @@ window.addEventListener("keydown", e => {
 const THEME_KEY = "estymator_theme";
 const themeBtn = document.getElementById("theme-toggle");
 const logoImg = document.getElementById("logo");
+const ICONS = {
+  light: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>',
+  dark: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+};
 let theme = "dark";
 try { theme = localStorage.getItem(THEME_KEY) || "dark"; } catch (e) {}
 function applyTheme(t) {
@@ -541,7 +543,7 @@ function applyTheme(t) {
   STROKE = t === "light" ? "#1b2534" : "#e6edf3";
   logoImg.src = t === "light" ? "IMG_7610.JPG" : "estymator-logo.png";
   redraw();
-  themeBtn.textContent = t === "light" ? "☀️" : "🌙";
+  themeBtn.innerHTML = t === "light" ? ICONS.light : ICONS.dark;
   try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
 }
 applyTheme(theme);
