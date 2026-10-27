@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Estymator Draw</title>
+<style>
+  :root {
+    --bg: #05070b;
+    --panel: rgba(15, 21, 31, 0.74);
+    --line: rgba(150, 185, 220, 0.16);
+    --line-strong: rgba(150, 185, 220, 0.30);
+    --text: #f5f9fd;
+    --dim: #9fb0c2;
+    --accent: #3bf0a8;
+    --accent-2: #1f9d6c;
+    --warn: #ffb454;
+    --bad: #ff6b6b;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --radius: 18px;
+    --shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+
+    --header-bg: rgba(8, 12, 18, 0.60);
+    --card-sheen: rgba(255, 255, 255, 0.045);
+    --card-hover-border: rgba(59, 240, 168, 0.30);
+    --card-hover-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+    --board-bg: #04070c;
+    --btn-bg: rgba(255, 255, 255, 0.045);
+    --btn-hover-bg: rgba(59, 240, 168, 0.08);
+    --btn-on-bg: rgba(59, 240, 168, 0.10);
+    --bar-bg: rgba(255, 255, 255, 0.06);
+    --bar-fill: linear-gradient(90deg, #42586f, #6a87a3);
+    --heading: #b6c5d6;
+    --pct: #c3d0dd;
+    --joke: #b9c6d4;
+    --title-grad: linear-gradient(180deg, #ffffff 0%, #d3dae1 100%);
+    --fortune-bg: rgba(52, 211, 153, 0.07);
+    --fortune-border: rgba(52, 211, 153, 0.22);
+    --fortune-color: #9cecc9;
+    --fortune-small: #7cc2a6;
+    --err-bg: rgba(255, 180, 84, 0.10);
+    --err-border: rgba(255, 180, 84, 0.4);
+    --bg-glow: rgba(52, 211, 153, 0.06);
+  }
+  [data-theme="light"] {
+    --bg: #f4f7fb;
+    --panel: rgba(255, 255, 255, 0.80);
+    --line: rgba(30, 45, 65, 0.12);
+    --line-strong: rgba(30, 45, 65, 0.22);
+    --text: #15202b;
+    --dim: #5a6b7d;
+    --accent: #12a46c;
+    --accent-2: #0d7c52;
+    --warn: #b96a00;
+    --bad: #d43b3b;
+    --shadow: 0 20px 60px rgba(30, 45, 65, 0.14);
+
+    --header-bg: rgba(255, 255, 255, 0.72);
+    --card-sheen: rgba(255, 255, 255, 0);
+    --card-hover-border: rgba(18, 164, 108, 0.35);
+    --card-hover-shadow: 0 30px 80px rgba(30, 45, 65, 0.16);
+    --board-bg: #ffffff;
+    --btn-bg: rgba(20, 32, 48, 0.045);
+    --btn-hover-bg: rgba(18, 164, 108, 0.10);
+    --btn-on-bg: rgba(18, 164, 108, 0.12);
+    --bar-bg: rgba(20, 32, 48, 0.08);
+    --bar-fill: linear-gradient(90deg, #c6d2df, #93a6ba);
+    --heading: #4a5b6e;
+    --pct: #4a5b6e;
+    --joke: #55687c;
+    --title-grad: linear-gradient(180deg, #14181d 0%, #3d4751 100%);
+    --fortune-bg: rgba(22, 160, 107, 0.06);
+    --fortune-border: rgba(22, 160, 107, 0.22);
+    --fortune-color: #0d7c52;
+    --fortune-small: #4a8c70;
+    --err-bg: rgba(185, 106, 0, 0.10);
+    --err-border: rgba(185, 106, 0, 0.4);
+    --bg-glow: rgba(22, 160, 107, 0.07);
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  html, body { margin: 0; color: var(--text); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    -webkit-user-select: none; user-select: none;
+    background: transparent;
+    overflow-x: hidden;
+    transition: color .25s ease;
+  }
+  .aurora {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(1200px 700px at 50% -12%, var(--bg-glow), transparent 60%),
+      radial-gradient(900px 700px at 100% 112%, var(--bg-glow), transparent 60%);
+    transition: background .25s ease;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 16px 26px; border-bottom: 1px solid var(--line);
+    background: var(--header-bg); backdrop-filter: blur(16px);
+    position: sticky; top: 0; z-index: 10;
+    transition: background .25s ease, border-color .25s ease;
+  }
+  .logo {
+    font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: .3px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo img {
+    height: 36px; width: auto; max-width: 160px; object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.28));
+  }
+  [data-theme="light"] .logo img { filter: none; }
+  #theme-toggle {
+    width: 40px; height: 40px; padding: 0; flex: 0 0 auto;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%; font-size: 18px; line-height: 1;
+    background: var(--btn-bg);
+  }
+  main {
+    display: grid; grid-template-columns: minmax(300px, 600px) minmax(300px, 1fr);
+    gap: 26px; padding: 28px; max-width: 1240px; margin: 0 auto;
+    animation: fadeUp .7s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; padding: 16px; } }
+  .card {
+    background: linear-gradient(180deg, var(--card-sheen), rgba(255, 255, 255, 0) 40%), var(--panel);
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px; box-shadow: var(--shadow);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .25s ease;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: var(--card-hover-border);
+    box-shadow: var(--card-hover-shadow);
+  }
+  canvas#board {
+    display: block; width: 100%; aspect-ratio: 1 / 1; border-radius: 12px;
+    background: var(--board-bg); border: 1px solid var(--line-strong);
+    touch-action: none; cursor: crosshair;
+    transition: background .25s ease;
+  }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  button {
+    font: inherit; color: var(--text); background: var(--btn-bg);
+    border: 1px solid var(--line-strong); padding: 10px 16px; border-radius: 12px; cursor: pointer;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease, color .15s ease;
+  }
+  button:hover {
+    border-color: var(--accent); color: var(--text);
+    transform: translateY(-1px);
+    background: var(--btn-hover-bg);
+  }
+  button:active { transform: translateY(0); }
+  button.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #04120c; border: none; font-weight: 600;
+  }
+  button.primary:hover { filter: brightness(1.06); color: #04120c; }
+  button.on { border-color: var(--accent); color: var(--accent); background: var(--btn-on-bg); }
+  .prompt { min-height: 96px; }
+  .prompt .big {
+    font-size: 42px; font-weight: 700; line-height: 1.08; letter-spacing: -.4px;
+    background: var(--title-grad);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+  .prompt .sub { color: var(--dim); font-size: 14px; margin-top: 6px; }
+  h3 {
+    margin: 20px 0 8px; font-size: 11.5px; letter-spacing: 1.7px; text-transform: uppercase;
+    color: var(--heading); font-weight: 700;
+  }
+  .pred { display: grid; grid-template-columns: 160px 1fr 56px; align-items: center; gap: 10px; margin: 7px 0; font-size: 15.5px; }
+  .pred .bar { height: 12px; background: var(--bar-bg); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+  .pred .bar i {
+    display: block; height: 100%; width: 0; border-radius: 999px;
+    background: var(--bar-fill); transition: width .15s ease;
+  }
+  .pred.top .bar i { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .pred.hit .bar i { background: linear-gradient(90deg, var(--warn), #f7b955); }
+  .pred .pct { text-align: right; color: var(--pct); font-family: var(--mono); font-size: 13px; }
+  .pred.top .pct, .pred.top .nm { color: var(--text); font-weight: 700; }
+  .guess { font-size: 18px; min-height: 28px; margin-bottom: 4px; }
+  .guess b { color: var(--accent); }
+  .banner { margin: 14px 0 0; padding: 12px 15px; border-radius: 12px; font-size: 15px; display: none; line-height: 1.4; }
+  .banner.err { display: block; background: var(--err-bg); border: 1px solid var(--err-border); color: var(--warn); }
+  .banner.fortune { display: block; background: var(--fortune-bg); border: 1px solid var(--fortune-border); color: var(--fortune-color); font-size: 16.5px; line-height: 1.5; }
+  .banner.fortune small { display: block; margin-top: 8px; color: var(--fortune-small); font-size: 13px; }
+  .joke { color: var(--joke); font-size: 14.5px; font-style: italic; min-height: 22px; margin: 2px 0 8px; }
+  footer { text-align: center; color: var(--dim); font-size: 12px; padding: 10px 0 26px; opacity: .85; }
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"></div>
+<header>
+  <div class="logo"><img id="logo" src="estymator-logo.png" alt="Estymator">estymator</div>
+  <button id="theme-toggle" aria-label="Zmień motyw" title="Zmień motyw">🌙</button>
+</header>
+
+<main>
+  <section>
+    <div class="card">
+      <canvas id="board" width="560" height="560"></canvas>
+      <div class="row">
+        <button id="undo">↶ Cofnij</button>
+        <button id="clear">✕ Wyczyść</button>
+        <button id="fortune">🔮 Przepowiednia na jutro</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <div class="prompt">
+        <div class="big">Narysuj cokolwiek</div>
+        <div class="sub">Sieć neuronowa zgaduje na żywo, w trakcie rysowania.</div>
+      </div>
+      <div class="banner" id="banner"></div>
+
+      <h3>Estymator myśli, że to…</h3>
+      <div class="guess" id="guess">&nbsp;</div>
+      <div class="joke" id="joke">&nbsp;</div>
+      <div id="preds"></div>
+    </div>
+
+  </section>
+</main>
+<footer>Model: mała sieć CNN (3 warstwy konwolucyjne), trenowana na zbiorze Google Quick Draw. Działa w całości w tej przeglądarce.</footer>
+
+<script src="model.js" onerror="void 0"></script>
+<script>
+const LABELS = {
+  "cat": ["Kot", "🐱"], "dog": ["Pies", "🐶"], "house": ["Dom", "🏠"], "tree": ["Drzewo", "🌳"],
+  "car": ["Samochód", "🚗"], "bicycle": ["Rower", "🚲"], "sun": ["Słońce", "☀️"], "moon": ["Księżyc", "🌙"],
+  "star": ["Gwiazda", "⭐"], "flower": ["Kwiat", "🌸"], "fish": ["Ryba", "🐟"], "apple": ["Jabłko", "🍎"],
+  "banana": ["Banan", "🍌"], "clock": ["Zegar", "🕒"], "umbrella": ["Parasol", "☂️"], "airplane": ["Samolot", "✈️"],
+  "guitar": ["Gitara", "🎸"], "smiley face": ["Buźka", "🙂"], "cup": ["Kubek", "☕"], "key": ["Klucz", "🔑"]
+};
+const label = c => (LABELS[c] ? LABELS[c][1] + " " + LABELS[c][0] : c);
+const plain = c => (LABELS[c] ? LABELS[c][0] : c);
+
+const JOKES = {
+  "cat": ["Sierść wykryta. Mój loss rośnie, bo kot właśnie zrzucił go ze stołu.", "Kot albo wąsaty ziemniak. Stawiam na kota."],
+  "dog": ["Dobry piesek. Z p = 0,9 chce na spacer.", "Widzę merdający ogon i zero regularyzacji."],
+  "house": ["Dom: dach + kwadrat + marzenie o kredycie.", "Dom z kominem, czyli klasyk datasetu."],
+  "tree": ["Drzewo. Random Forest zaczyna się od jednego takiego.", "Drzewo decyzyjne, tylko z liśćmi."],
+  "car": ["Brum brum. Autonomiczny, ale tylko do pierwszego ronda.", "Samochód. Parking pod W4 i tak będzie zajęty."],
+  "bicycle": ["Rower. Dwa koła, zero gradientów.", "Wrocławski rowerzysta rozpoznany."],
+  "sun": ["Słońce w październiku? Overfitting na wspomnieniach.", "Słońce. Rzadki outlier w listopadowym Wrocławiu."],
+  "moon": ["Księżyc. Model też pracuje nocą, przed kolokwium.", "Księżyc wykryty. Pora na deploy o 3:00."],
+  "star": ["Gwiazda. Dostajesz 5 gwiazdek bez walidacji.", "Gwiazdka. GitHub też takie zbiera."],
+  "flower": ["Kwiat. Piękny jak spadek funkcji straty.", "Kwiatek! Iris dataset kiwa głową."],
+  "fish": ["Ryba. Mój model też wpadł w sieć. Neuronową.", "Ryba wykryta, głębokie uczenie ma się dobrze."],
+  "apple": ["Jabłko: Newton, Apple albo zdrowa przekąska. Wybieram przekąskę.", "Jedno jabłko dziennie, a bugi daleko."],
+  "banana": ["Banan. Idealna jednostka skali błędu.", "Banan wykryty, zero ostrzeżeń od ewaluacji."],
+  "clock": ["Zegar. Do deadline'u projektu zawsze zostaje za mało.", "Zegar tyka jak epoki treningu."],
+  "umbrella": ["Parasol. Wrocław, więc przyda się zawsze.", "Parasol: model przewiduje deszcz z p = 0,99."],
+  "airplane": ["Samolot. Lecimy na konferencję!", "Samolot, czyli model na produkcji: wystartował i trzymamy kciuki."],
+  "guitar": ["Gitara. Sześć strun i ani jednego hiperparametru.", "Gitara. Generatywna muzyka, ale na żywo."],
+  "smiley face": ["Buźka. Sentiment: pozytywny.", "Uśmiech wykryty, F1 = 1,0 (nie sprawdzajcie)."],
+  "cup": ["Kubek. Paliwo każdego treningu.", "Kubek z kawą: pierwszy krok pipeline'u koła."],
+  "key": ["Klucz. Mam nadzieję, że nie do API.", "Klucz: nigdy nie commituj do repo."]
+};
+const LOW_JOKES = [
+  "Hmm, to jakiś outlier.", "Pewność niska jak R² na złym modelu.", "Sieć mówi: dajcie więcej danych.",
+  "Jeszcze jedna kreska i może zgadnę.", "To wygląda jak overfitting na Twojej wyobraźni.", "Moja funkcja straty płacze."
+];
+const FORTUNES = {
+  "cat": "Jutro ktoś zostawi Ci sierść na czarnym swetrze, ale zaliczysz coś z pierwszego terminu.",
+  "dog": "Jutro ktoś ucieszy się na Twój widok bardziej niż Ty na wynik walidacji.",
+  "house": "Jutro dotrzesz na zajęcia prosto z domu. Zdalnie.",
+  "tree": "Jutro zrobisz git branch i naprawdę go zmergujesz.",
+  "car": "Jutro znajdziesz miejsce na parkingu. Szansa 3%, ale się zdarza.",
+  "bicycle": "Jutro wiatr w twarz, ale do W4 będzie z górki.",
+  "sun": "Jutro wyjdzie słońce między zajęciami. Zdąż je zauważyć.",
+  "moon": "Jutro Twój kod zadziała o 2:00 w nocy, a rano już nie.",
+  "star": "Jutro dostaniesz gwiazdkę na GitHubie albo chociaż reakcję na Discordzie.",
+  "flower": "Jutro coś rozkwitnie. Najpewniej Twój pull request.",
+  "fish": "Jutro ktoś rzuci Ci ciekawy temat badawczy. Nie wahaj się, bierz.",
+  "apple": "Jutro zjesz jabłko i nic się nie zepsuje w pipeline.",
+  "banana": "Jutro poślizgniesz się na jednym null-u, ale wstaniesz.",
+  "clock": "Jutro będziesz mieć dokładnie tyle czasu na projekt: o godzinę za mało.",
+  "umbrella": "Jutro w prognozie deszcz. Model jest pewny na 99%.",
+  "airplane": "Jutro wyruszysz na konferencję. Albo przynajmniej na hackathon.",
+  "guitar": "Jutro usłyszysz utwór wygenerowany przez AI i nie poznasz różnicy.",
+  "smiley face": "Jutro Twój loss spadnie, a nastrój wzrośnie.",
+  "cup": "Jutro kawa przyjdzie w idealnym momencie.",
+  "key": "Jutro znajdziesz klucz do problemu, który męczy Cię od tygodnia."
+};
+
+// BEGIN-INFER
+function convRelu(x, cin, H, W, w, b, cout) {
+  const out = new Float32Array(cout * H * W);
+  for (let co = 0; co < cout; co++) {
+    for (let y = 0; y < H; y++) {
+      for (let xx = 0; xx < W; xx++) {
+        let s = b[co];
+        for (let ci = 0; ci < cin; ci++) {
+          const wb = (co * cin + ci) * 9;
+          const xb = ci * H * W;
+          for (let ky = 0; ky < 3; ky++) {
+            const yy = y + ky - 1;
+            if (yy < 0 || yy >= H) continue;
+            for (let kx = 0; kx < 3; kx++) {
+              const x2 = xx + kx - 1;
+              if (x2 < 0 || x2 >= W) continue;
+              s += w[wb + ky * 3 + kx] * x[xb + yy * W + x2];
+            }
+          }
+        }
+        out[co * H * W + y * W + xx] = s > 0 ? s : 0;
+      }
+    }
+  }
+  return out;
+}
+function maxPool2(x, C, H, W) {
+  const h2 = Math.floor(H / 2), w2 = Math.floor(W / 2);
+  const out = new Float32Array(C * h2 * w2);
+  for (let c = 0; c < C; c++)
+    for (let y = 0; y < h2; y++)
+      for (let xx = 0; xx < w2; xx++) {
+        const i = c * H * W + 2 * y * W + 2 * xx;
+        out[c * h2 * w2 + y * w2 + xx] = Math.max(x[i], x[i + 1], x[i + W], x[i + W + 1]);
+      }
+  return out;
+}
+function dense(x, w, b, nin, nout, relu) {
+  const out = new Float32Array(nout);
+  for (let o = 0; o < nout; o++) {
+    let s = b[o];
+    const wb = o * nin;
+    for (let i = 0; i < nin; i++) s += w[wb + i] * x[i];
+    out[o] = relu && s < 0 ? 0 : s;
+  }
+  return out;
+}
+function predictProbs(L, img784, k) {
+  let t = convRelu(img784, 1, 28, 28, L["c1.weight"], L["c1.bias"], 16);
+  t = maxPool2(t, 16, 28, 28);
+  t = convRelu(t, 16, 14, 14, L["c2.weight"], L["c2.bias"], 32);
+  t = maxPool2(t, 32, 14, 14);
+  t = convRelu(t, 32, 7, 7, L["c3.weight"], L["c3.bias"], 64);
+  t = maxPool2(t, 64, 7, 7);
+  t = dense(t, L["d1.weight"], L["d1.bias"], 576, 128, true);
+  const z = dense(t, L["d2.weight"], L["d2.bias"], 128, k, false);
+  let m = -Infinity;
+  for (const v of z) if (v > m) m = v;
+  let sum = 0;
+  const p = new Float32Array(k);
+  for (let i = 0; i < k; i++) { p[i] = Math.exp(z[i] - m); sum += p[i]; }
+  for (let i = 0; i < k; i++) p[i] /= sum;
+  return p;
+}
+// END-INFER
+
+// ---- model
+let MODEL = null, W_ = null;
+if (window.QD_MODEL) {
+  MODEL = window.QD_MODEL;
+  W_ = {};
+  for (const k in MODEL.layers) W_[k] = Float32Array.from(MODEL.layers[k]);
+}
+
+// ---- drawing
+const board = document.getElementById("board");
+const ctx = board.getContext("2d");
+let strokes = [];
+let drawing = false;
+const off = document.createElement("canvas");
+off.width = off.height = 28;
+const octx = off.getContext("2d", { willReadFrequently: true });
+let STROKE = "#e6edf3";
+
+function redraw() {
+  ctx.clearRect(0, 0, board.width, board.height);
+  ctx.lineCap = ctx.lineJoin = "round";
+  ctx.strokeStyle = STROKE;
+  ctx.fillStyle = STROKE;
+  ctx.lineWidth = 9;
+  for (const s of strokes) {
+    if (s.length === 1) {
+      ctx.beginPath(); ctx.arc(s[0].x, s[0].y, 4.5, 0, Math.PI * 2); ctx.fill();
+      continue;
+    }
+    ctx.beginPath();
+    ctx.moveTo(s[0].x, s[0].y);
+    for (let i = 1; i < s.length; i++) ctx.lineTo(s[i].x, s[i].y);
+    ctx.stroke();
+  }
+}
+
+// Rasteryzacja do 28x28 w stylu Quick Draw: biała kreska na czarnym tle, rysunek wycentrowany i przeskalowany.
+function toImage() {
+  let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+  for (const s of strokes) for (const p of s) {
+    if (p.x < minx) minx = p.x; if (p.x > maxx) maxx = p.x;
+    if (p.y < miny) miny = p.y; if (p.y > maxy) maxy = p.y;
+  }
+  const size = Math.max(maxx - minx, maxy - miny);
+  if (!isFinite(size) || size < 12) return null; // zbyt mały szkic
+  const box = 24;
+  const sc = box / size;
+  const ox = 14 - ((minx + maxx) / 2) * sc;
+  const oy = 14 - ((miny + maxy) / 2) * sc;
+  octx.fillStyle = "#000"; octx.fillRect(0, 0, 28, 28);
+  octx.strokeStyle = "#fff"; octx.fillStyle = "#fff";
+  octx.lineWidth = 2; octx.lineCap = octx.lineJoin = "round";
+  for (const s of strokes) {
+    if (s.length === 1) {
+      octx.beginPath(); octx.arc(s[0].x * sc + ox, s[0].y * sc + oy, 1, 0, Math.PI * 2); octx.fill();
+      continue;
+    }
+    octx.beginPath();
+    octx.moveTo(s[0].x * sc + ox, s[0].y * sc + oy);
+    for (let i = 1; i < s.length; i++) octx.lineTo(s[i].x * sc + ox, s[i].y * sc + oy);
+    octx.stroke();
+  }
+  const d = octx.getImageData(0, 0, 28, 28).data;
+  const img = new Float32Array(784);
+  for (let i = 0; i < 784; i++) img[i] = d[i * 4] / 255;
+  return img;
+}
+
+function pos(e) {
+  const r = board.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * board.width / r.width, y: (e.clientY - r.top) * board.height / r.height };
+}
+
+// ---- UI: predictions
+const predsEl = document.getElementById("preds");
+const guessEl = document.getElementById("guess");
+const bannerEl = document.getElementById("banner");
+for (let i = 0; i < 5; i++) {
+  const d = document.createElement("div");
+  d.className = "pred";
+  d.innerHTML = '<span class="nm">—</span><span class="bar"><i></i></span><span class="pct"></span>';
+  predsEl.appendChild(d);
+}
+function showBanner(cls, html) { bannerEl.className = "banner " + cls; bannerEl.innerHTML = html; }
+function hideBanner() { bannerEl.className = "banner"; }
+
+let lastTop = null;
+const jokeEl = document.getElementById("joke");
+let jokeKey = null;
+function pickFrom(a) { return a[Math.floor(Math.random() * a.length)]; }
+function updateJoke(top) {
+  if (!top) { jokeKey = null; jokeEl.innerHTML = "&nbsp;"; return; }
+  const key = top.p >= 0.5 ? top.cls : "low";
+  if (key === jokeKey) return; // ten sam komentarz, dopóki zgadywana klasa się nie zmieni
+  jokeKey = key;
+  jokeEl.textContent = key === "low" ? pickFrom(LOW_JOKES) : pickFrom(JOKES[key] || LOW_JOKES);
+}
+function updatePreds() {
+  if (!MODEL) return null;
+  const img = toImage();
+  const rows = predsEl.children;
+  if (!img) {
+    updateJoke(null);
+    guessEl.innerHTML = "&nbsp;";
+    for (const r of rows) { r.className = "pred"; r.querySelector(".nm").textContent = "—"; r.querySelector("i").style.width = "0"; r.querySelector(".pct").textContent = ""; }
+    lastTop = null;
+    return null;
+  }
+  const p = predictProbs(W_, img, MODEL.classes.length);
+  const order = Array.from(p.keys()).sort((a, b) => p[b] - p[a]).slice(0, 5);
+  order.forEach((ci, i) => {
+    const r = rows[i];
+    const cls = MODEL.classes[ci];
+    r.className = "pred" + (i === 0 ? " top" : "");
+    r.querySelector(".nm").textContent = label(cls);
+    r.querySelector("i").style.width = (p[ci] * 100).toFixed(1) + "%";
+    r.querySelector(".pct").textContent = Math.round(p[ci] * 100) + "%";
+  });
+  const top = MODEL.classes[order[0]];
+  guessEl.innerHTML = "To chyba… <b>" + label(top) + "</b>";
+  lastTop = { cls: top, p: p[order[0]] };
+  updateJoke(lastTop);
+  return lastTop;
+}
+
+function tellFortune() {
+  if (!MODEL || !lastTop) { showBanner("err", "Najpierw coś narysuj, a Estymator przewidzi Twoją przyszłość."); return; }
+  const f = FORTUNES[lastTop.cls] || "Jutro będzie lepiej niż dziś. Estymator tak szacuje.";
+  const conf = Math.round(lastTop.p * 100);
+  const lucky = 1 + Math.floor(Math.random() * 99);
+  const note = conf >= 70 ? "Wysoka pewność, ale to tylko estymacja." : conf >= 40 ? "Średnia pewność, traktuj jak hipotezę." : "Niska pewność. Hipoteza zerowa: nic się nie wydarzy.";
+  showBanner("fortune", "🔮 <b>Przepowiednia Estymatora</b><br>Na podstawie rysunku (" + label(lastTop.cls) + "): " + f +
+    "<small>Pewność przepowiedni: " + conf + "% · " + note + " Szczęśliwy numer: " + lucky + " ± 3</small>");
+}
+
+// ---- drawing helpers
+function clearBoard() { strokes = []; redraw(); updatePreds(); }
+
+// ---- pointer events
+let raf = 0;
+function schedule() {
+  if (raf) return;
+  raf = requestAnimationFrame(() => {
+    raf = 0;
+    updatePreds();
+  });
+}
+board.addEventListener("pointerdown", e => {
+  board.setPointerCapture(e.pointerId);
+  drawing = true;
+  strokes.push([pos(e)]);
+  redraw(); schedule();
+});
+board.addEventListener("pointermove", e => {
+  if (!drawing) return;
+  const s = strokes[strokes.length - 1];
+  const p = pos(e), l = s[s.length - 1];
+  if (Math.hypot(p.x - l.x, p.y - l.y) < 2) return;
+  s.push(p); redraw(); schedule();
+});
+const end = () => { drawing = false; schedule(); };
+board.addEventListener("pointerup", end);
+board.addEventListener("pointercancel", end);
+
+document.getElementById("clear").onclick = () => { clearBoard(); };
+document.getElementById("undo").onclick = () => { strokes.pop(); redraw(); schedule(); };
+document.getElementById("fortune").onclick = tellFortune;
+window.addEventListener("keydown", e => {
+  if (e.key === "c" || e.key === "C") clearBoard();
+});
+
+// ---- theme toggle
+const THEME_KEY = "estymator_theme";
+const themeBtn = document.getElementById("theme-toggle");
+const logoImg = document.getElementById("logo");
+let theme = "dark";
+try { theme = localStorage.getItem(THEME_KEY) || "dark"; } catch (e) {}
+function applyTheme(t) {
+  theme = t;
+  document.documentElement.setAttribute("data-theme", t);
+  STROKE = t === "light" ? "#1b2534" : "#e6edf3";
+  logoImg.src = t === "light" ? "IMG_7610.JPG" : "estymator-logo.png";
+  redraw();
+  themeBtn.textContent = t === "light" ? "☀️" : "🌙";
+  try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+}
+applyTheme(theme);
+themeBtn.onclick = () => applyTheme(theme === "dark" ? "light" : "dark");
+
+if (!MODEL) {
+  showBanner("err", "Brak pliku <b>model.js</b>. Uruchom w tym folderze: <b>python train.py</b> (ok. 5–10 min), potem odśwież stronę.");
+}
+</script>
+</body>
+</html>
